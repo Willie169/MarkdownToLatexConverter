@@ -16,13 +16,13 @@ class MarkdownToLatexConverter {
     
     const dom = new JSDOM(htmlContent);
     const document = dom.window.document;
-
-    let latexContent = this.convertNodeToLatex(document.body);
+    const { Node } = dom.window;
+    let latexContent = this.convertNodeToLatex(document.body, Node);
 
     return latexContent;
   }
 
-  convertNodeToLatex(node) {
+  convertNodeToLatex(node, Node) {
     if (node.nodeType === Node.TEXT_NODE) {
       return this.escapeLatexSpecialChars(node.textContent);
     }
@@ -42,47 +42,56 @@ class MarkdownToLatexConverter {
         return `\\subsubsection{${this.extractTextContent(node)}}`;
       
       case 'ul':
-        return this.convertList(node, 'itemize');
+        return this.convertList(node, 'itemize', Node);
       case 'ol':
-        return this.convertList(node, 'enumerate');
+        return this.convertList(node, 'enumerate', Node);
       
       case 'li':
-        return `\\item ${this.processNodeChildren(node)}`;
+        return `\\item ${this.processNodeChildren(node, Node)}`;
       
       case 'p':
-        return `${this.processNodeChildren(node)}\n\n`;
+        return `${this.processNodeChildren(node, Node)}\n\n`;
       
       case 'strong':
       case 'b':
-        return `\\textbf{${this.processNodeChildren(node)}}`;
+        return `\\textbf{${this.processNodeChildren(node, Node)}}`;
       
       case 'em':
       case 'i':
-        return `\\textit{${this.processNodeChildren(node)}}`;
+        return `\\textit{${this.processNodeChildren(node, Node)}}`;
       
       case 'code':
         return `\\texttt{${this.extractTextContent(node)}}`;
       
       case 'a':
+        const childImages = node.querySelectorAll('img');
+        if (childImages.length > 0) {
+          const href = node.getAttribute('href');
+          const imageLatex = Array.from(childImages)
+            .map(img => this.convertImage(img))
+            .join('\n');
+          
+          return `\\href{${href}}{${imageLatex}}`;
+        }
         return this.convertLink(node);
       
       case 'img':
         return this.convertImage(node);
       
       case 'table':
-        return this.convertTable(node);
+        return this.convertTable(node, Node);
       
       case 'pre':
         return this.convertCodeBlock(node);
       
       default:
-        return this.processNodeChildren(node);
+        return this.processNodeChildren(node, Node);
     }
   }
 
-  convertList(listNode, type) {
+  convertList(listNode, type, Node) {
     const listItems = Array.from(listNode.children)
-      .map(li => this.convertNodeToLatex(li))
+      .map(li => this.convertNodeToLatex(li, Node))
       .join('\n');
     
     return `\\begin{${type}}\n${listItems}\n\\end{${type}}`;
@@ -107,7 +116,7 @@ ${labelCmd}
 \\end{figure}`;
   }
 
-  convertTable(tableNode) {
+  convertTable(tableNode, Node) {
     const rows = Array.from(tableNode.querySelectorAll('tr'));
     
     const headerCells = rows[0] ? 
@@ -138,9 +147,9 @@ ${codeContent}
 \\end{verbatim}`;
   }
 
-  processNodeChildren(node) {
+  processNodeChildren(node, Node) {
     return Array.from(node.childNodes)
-      .map(child => this.convertNodeToLatex(child))
+      .map(child => this.convertNodeToLatex(child, Node))
       .join('');
   }
 
