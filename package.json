@@ -1,0 +1,27 @@
+{
+  "name": "markdowntolatexconverter",
+  "version": "1.0.0",
+  "description": "Markdown to LaTeX Converter.",
+  "main": "MarkdownToLatexConverter.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Willie169/MarkdownToLatexConverter.git"
+  },
+  "keywords": [
+    "markdown",
+    "latex",
+    "converter",
+    "format",
+    "md",
+    "html"
+  ],
+  "author": "willie169",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Willie169/MarkdownToLatexConverter/issues"
+  },
+  "homepage": "https://github.com/Willie169/MarkdownToLatexConverter#readme"
+}
